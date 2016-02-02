@@ -4,10 +4,13 @@ from datetime import datetime
 from tzlocal import get_localzone
 
 
+# gets the UTC offset in hours
 def get_utc_offset(d):
-    return d.utcoffset().total_seconds() / 60 / 60
+    return int(d.utcoffset().total_seconds() / 3600)
 
 
+# returns the string version of the UTC time and local time
+# for displaying purposes
 def get_time_str():
     d = datetime.now(get_localzone())
     utc_t = datetime.now(pytz.utc).strftime("%Y-%m-%d %H:%M:%S") + ' UTC'
@@ -17,6 +20,13 @@ def get_time_str():
     local_t = d.strftime("%Y-%m-%d %H:%M:%S UTC") + offset_str
     return utc_t, local_t
 
+
+# saves the specified frame to disk
+def take_snapshot(f):
+    # todo: check. this is currently not being used
+    y, x, z = frame.shape
+    cv2.imwrite(img_path + "caca" + ".jpg", f, img_params)
+    print 'img has been saved'
 
 img_path = "D:\\"
 img_params = [cv2.IMWRITE_JPEG_QUALITY, 60]
@@ -43,9 +53,7 @@ while rval:
         break
     # if ENTER key
     if key == 13:
-        y, x, z = frame.shape
-        cv2.imwrite(img_path + "caca" + ".jpg", frame, img_params)
-        print 'img has been saved'
+        take_snapshot(frame)
 cv2.destroyWindow("preview")
 
 
