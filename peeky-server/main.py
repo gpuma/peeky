@@ -3,6 +3,7 @@
 import cv2
 import pytz
 import ntpath
+import time
 from datetime import datetime
 
 from tzlocal import get_localzone
@@ -53,41 +54,49 @@ def upload(ftp, full_path):
     print "STOR " + fn_only
     ftp.storbinary("STOR " + fn_only, open(full_path, "rb"))
 
-img_path = "D:\\"
-img_params = [cv2.IMWRITE_JPEG_QUALITY, 60]
-# starting point for both timestamps
-org_pos = (0, 30)
-org_pos2 = (0, 60)
-cv2.namedWindow("preview")
-vc = cv2.VideoCapture(0)
+# huge loop
+while True:
+    img_path = "D:\\"
+    img_params = [cv2.IMWRITE_JPEG_QUALITY, 60]
+    # starting point for both timestamps
+    org_pos = (0, 30)
+    org_pos2 = (0, 60)
+    cv2.namedWindow("preview")
+    vc = cv2.VideoCapture(0)
 
-rval = False
+    rval = False
 
-# we loop until we get a frame
-while not rval:
-    # try to get the first frame
-    if vc.isOpened():
-        rval, frame = vc.read()
-    else:
-        rval = False
-utc_time, local_time = get_time_str()
-cv2.putText(frame, local_time, org_pos, cv2.FONT_HERSHEY_DUPLEX, .8, (255,255,255), 1, lineType=8)
-cv2.putText(frame, utc_time, org_pos2, cv2.FONT_HERSHEY_DUPLEX, .8, (255,255,255), 1, lineType=8)
-img_path = take_snapshot(frame)
-cv2.destroyWindow("preview")
+    # we loop until we get a frame
+    while not rval:
+        # try to get the first frame
+        if vc.isOpened():
+            rval, frame = vc.read()
+        else:
+            rval = False
+    utc_time, local_time = get_time_str()
+    cv2.putText(frame, local_time, org_pos, cv2.FONT_HERSHEY_DUPLEX, .8, (255,255,255), 1, lineType=8)
+    cv2.putText(frame, utc_time, org_pos2, cv2.FONT_HERSHEY_DUPLEX, .8, (255,255,255), 1, lineType=8)
+    img_path = take_snapshot(frame)
 
-# FTP UPLOAD
-host, user, pwd = get_ftp_credentials("ftp.txt")
-try:
-    ftp = FTP(host)
-    print 'connecting to host'
-    ftp.login(user, pwd)
-    print 'success. uploading image now...'
-    ftp.cwd("public_html/")
-    upload(ftp, img_path)
-    print 'img upload was successful. disconnecting...'
-except:
-    print 'problem with FTP connection'
-    raise
-finally:
-    ftp.quit()
+    # important! if not camera will remain ON
+    vc.release()
+    cv2.destroyAllWindows()
+
+    # FTP UPLOAD
+    host, user, pwd = get_ftp_credentials("ftp.txt")
+    try:
+        ftp = FTP(host)
+        print 'connecting to host'
+        ftp.login(user, pwd)
+        print 'success. uploading image now...'
+        ftp.cwd("public_html/")
+        upload(ftp, img_path)
+        print 'img upload was successful. disconnecting...'
+    # so it doesn't print an error when a keyboard or system interrupt happnes
+    except Exception:
+        print 'problem with FTP connection'
+        raise
+    finally:
+        ftp.quit()
+    # every five minutes
+    time.sleep(60 * 5)
