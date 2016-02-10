@@ -50,7 +50,6 @@ def get_ftp_credentials(filename):
 def upload(ftp, full_path):
     # we only specify filename on the server; no path
     fn_only = ntpath.split(full_path)[1]
-    # todo: check block size
     print "STOR " + fn_only
     ftp.storbinary("STOR " + fn_only, open(full_path, "rb"))
 
@@ -95,7 +94,6 @@ while True:
     # so it doesn't print an error when a keyboard or system interrupt happnes
     except Exception:
         print 'problem with FTP connection'
-        raise
     finally:
         ftp.quit()
     # every five minutes
