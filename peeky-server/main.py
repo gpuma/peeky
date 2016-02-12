@@ -1,9 +1,11 @@
 # written by Gustavo Hernando Puma Tejada
 
+import os
 import cv2
 import pytz
 import ntpath
 import time
+import tempfile
 from datetime import datetime
 
 from tzlocal import get_localzone
@@ -30,7 +32,7 @@ def get_time_str():
 # saves the specified frame to disk
 # returns the full path to the file
 def take_snapshot(f):
-    full_img_path = img_path + "caca" + ".jpg"
+    full_img_path = img_path + "\\caca" + ".jpg"
     cv2.imwrite(full_img_path, f, img_params)
     print 'img has been saved'
     return full_img_path
@@ -55,7 +57,8 @@ def upload(ftp, full_path):
 
 # huge loop
 while True:
-    img_path = "D:\\"
+    # we save on the temp folder
+    img_path = tempfile.gettempdir()
     img_params = [cv2.IMWRITE_JPEG_QUALITY, 60]
     # starting point for both timestamps
     org_pos = (0, 30)
@@ -96,5 +99,8 @@ while True:
         print 'problem with FTP connection'
     finally:
         ftp.quit()
+
+    # we delete our temp image from disk
+    os.remove(img_path)
     # every five minutes
     time.sleep(60 * 5)
